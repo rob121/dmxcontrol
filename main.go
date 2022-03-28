@@ -27,6 +27,7 @@ var state map[string]map[string]interface{}
 type Device map[string]DeviceEntry
 
 type DeviceEntry struct{
+	Note string
 	Command map[string]CommandEntry
 }
 
@@ -163,12 +164,31 @@ func httpDefaultHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := PageData{}
 
-	var devs Device
+	var all Device
+    var devs = make(Device)
+    var scenes = make(Device)
 
-	conf.UnmarshalKey("devices",&devs)
+	conf.UnmarshalKey("devices",&all)
+
+	for k,v := range all {
+
+		if(strings.Contains(k,"scene")){
+
+			scenes[k]=v
+
+		}else{
+
+			devs[k]=v
+
+		}
+
+	}
+
+
 
 	data["Title"] = "Home"
 	data["Devices"] = &devs
+	data["Scenes"] = &scenes
 
 	out := tmpl.Execute(w, data)
 
@@ -201,7 +221,7 @@ func loadTmpl(dest string) (*template.Template){
 			case "off":
 				return "btn-danger"
 			default:
-				return "btn-primary"
+				return "btn-secondary"
 			}
 		},
 	}).ParseFS(assetsfs,dest)
