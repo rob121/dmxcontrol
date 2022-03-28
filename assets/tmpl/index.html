@@ -1,0 +1,45 @@
+{{ template "header" }}
+<main>
+    <div class="container-fluid">
+        <h1 class="mt-4"><i class="fas fa-tachometer-alt"> </i> Devices</h1>
+        <!--<ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>-->
+
+        <div class="row mt-4" >
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-server mr-1"></i>
+
+
+                    </div>
+                    <div class="card-body p-0">
+
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <tr>
+<th>Device</th>
+                                    <th></th>
+                                </tr>
+
+                                    {{range $k,$v := .Devices}}
+                                <tr>
+                                    <td>{{title $k}}</td>
+                                   <td>
+                                       {{$entry := ($v.Command)}}
+                                     {{range $kk,$vv := $entry}}
+                                       <a class="btn {{colorcmd $kk}}" href="/device/{{$k}}/{{$kk}}">{{title $kk}}</a>
+                                       {{end}}
+                                   </td>
+                                </tr>
+                                    {{end}}
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</main>
+{{ template "footer" }}
