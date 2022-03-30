@@ -2,6 +2,8 @@ package main
 
 import(
 	"embed"
+	"github.com/oliread/usbdmx"
+	"github.com/oliread/usbdmx/ft232"
 	"github.com/gorilla/mux"
 	"github.com/rob121/vhelp"
 	"log"
@@ -13,7 +15,6 @@ import(
 	"fmt"
     "github.com/spf13/viper"
 	"html/template"
-	"github.com/akualab/dmx"
 	)
 
 
@@ -21,7 +22,7 @@ import(
 var assetsfs embed.FS
 type PageData map[string]interface{}
 var conf *viper.Viper
-var dms *dmx.DMX
+var dms ft232.DMXController
 var state map[string]map[string]interface{}
 
 type Device map[string]DeviceEntry
@@ -57,20 +58,41 @@ func setupDMX(){
 		}
 	}()
 
-	var e error
 
-	dms, e = dmx.NewDMXConnection(conf.GetString("dmx.usb"))
-	if e != nil {
-		log.Println(e)
+
+	//vid := uint16(0x0403)
+	//pid := uint16(0x6001)
+
+	vid := uint16(conf.GetInt("dmx.vid"))
+	pid := uint16(conf.GetInt("dmx.pid"))
+	debug := conf.GetInt("dmx.debug")
+	input_id := conf.GetInt("dmx.input_id")
+    output_id := conf.GetInt("dmx.output_id")
+    config := usbdmx.NewConfig(vid, pid, output_id,input_id,debug)
+
+	// Get a usb context for our configuration
+	config.GetUSBContext()
+
+	// Create a controller and connect to it
+	dms = ft232.NewDMXController(config)
+	if err := dms.Connect(); err != nil {
+		log.Printf("Failed to connect DMX Controller: %s\n", err)
 	}
 
-	t := time.NewTicker(30 * time.Second)
+	t := time.NewTicker(30 * time.Millisecond)
 
+	ct := 0
 	for range t.C{
 		//send something to keep alive?
 
-		renderDmx()
+		renderDmx(ct)
 
+		ct++
+
+		if(ct>40){
+
+			ct = 0
+		}
 	}
 
 }
@@ -129,24 +151,33 @@ func httpCmdHandler(w http.ResponseWriter, r *http.Request) {
 	  state[name] = items
 	}
 
-	renderDmx()
+	renderDmx(0)
 
 	http.Redirect(w, r, "/", 302)
 
 }
 
-func renderDmx(){
+func renderDmx(ct int){
 
-	fmt.Println("*************************************************************")
-	log.Printf("%#v",state)
-	for name,items := range state{
 
-		for k,v:= range items{
-			log.Printf("Sending %s to channel %s for %s\n",v,k,name)
-			c,ce := strconv.Atoi(k)
-			bv,be := strconv.Atoi(fmt.Sprint(v))
-			if(ce==nil && be==nil) {
-				dms.SetChannel(c, byte(bv)) //just send the last channel
+	if(ct == 40) {
+		fmt.Println("*************************************************************")
+		log.Printf("%#v", state)
+	}
+		for name,items := range state{
+
+		if(len(items)>0) {
+			for k, v := range items {
+				if (ct == 40) {
+
+					log.Printf("Sending %s to channel %s for %s\n", v, k, name)
+
+				}
+				c, ce := strconv.Atoi(k)
+				bv, be := strconv.Atoi(fmt.Sprint(v))
+				if (ce == nil && be == nil) {
+					dms.SetChannel(int16(c), byte(bv)) //just send the last channel
+				}
 			}
 		}
 

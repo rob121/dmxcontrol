@@ -3,7 +3,11 @@
    "port": "8098"
   },
   "dmx": {
-    "usb": "/dev/ttyUSB0"
+    "vid": "0x0403",
+    "pid": "0x6001",
+    "debug": 0,
+    "input_id": 1,
+    "output_id": 2
   },
   "devices": {
      "scene_1": {
