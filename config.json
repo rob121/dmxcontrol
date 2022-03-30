@@ -11,15 +11,16 @@
   },
   "devices": {
      "scene_1": {
-         "note": "This changes all the lights red",
+         "note": "This is a note",
          "command": {
-           "on": {"3": "255"},
-           "off": {"3": "0"}
+           "on": {"36": "255","37": "255"},
+           "off": {"36": "0","37": "0"}
          }
        },
      "stage_front_overhead":{
         "command": {
            "on": {"3": "255"},
+           "dim_50": {"3": "60"},
            "off": {"3": "0"}
         }
      },

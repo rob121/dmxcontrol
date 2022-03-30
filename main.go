@@ -151,7 +151,7 @@ func httpCmdHandler(w http.ResponseWriter, r *http.Request) {
 	  state[name] = items
 	}
 
-	renderDmx(0)
+
 
 	http.Redirect(w, r, "/", 302)
 
